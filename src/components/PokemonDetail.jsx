@@ -5,8 +5,6 @@ import { getPokemonById, getPokemonSpeciesById } from '../Data_Fetching_and_Cach
 import axios from 'axios';
 import { getTypeColor } from '../utils/getTypeColor';
 
-
-
 const PokemonDetail = () => {
   const [pokemon, setPokemon] = useState(null);
   const [evolutions, setEvolutions] = useState([]);
@@ -28,6 +26,19 @@ const PokemonDetail = () => {
           console.error('No species data found.');
           return;
         }
+
+        // Extract versions and descriptions
+        const versions = {};
+        speciesData.flavor_text_entries.forEach((entry) => {
+          if (entry.language.name === 'en') {
+            const versionName = entry.version.name;
+            if (!versions[versionName]) {
+              versions[versionName] = entry.flavor_text
+                .replace(/\f/g, ' ')
+                .replace(/\n|\r/g, ' ');
+            }
+          }
+        });
 
         const evolutionChainUrl = speciesData.evolution_chain.url;
         const evolutionResponse = await axios.get(evolutionChainUrl);
@@ -52,7 +63,9 @@ const PokemonDetail = () => {
         // Fetch weaknesses based on types
         let typeWeaknesses = [];
         for (const type of detailedPokemon.types) {
-          const typeResponse = await axios.get(`https://pokeapi.co/api/v2/type/${type}`);
+          const typeResponse = await axios.get(
+            `https://pokeapi.co/api/v2/type/${type}`
+          );
           const weakTo = typeResponse.data.damage_relations.double_damage_from.map(
             (weakType) => weakType.name
           );
@@ -67,7 +80,9 @@ const PokemonDetail = () => {
         setPokemon({
           ...detailedPokemon,
           category:
-            speciesData.genera.find((genus) => genus.language.name === 'en')?.genus || '',
+            speciesData.genera.find((genus) => genus.language.name === 'en')?.genus ||
+            '',
+          versions,
         });
         setWeaknesses(uniqueWeaknesses);
         setEvolutions(evolutionData);
@@ -80,7 +95,6 @@ const PokemonDetail = () => {
   }, [id]);
 
   if (!pokemon) return <div>Loading Pokémon details...</div>;
-
 
   return (
     <div className="pokemon-detail-container p-6  text-neutral-200 rounded-lg mt-4 ml-8 mr-8">
@@ -95,23 +109,40 @@ const PokemonDetail = () => {
         </div>
 
         <div className="w-full col-span-2  p-4">
-          <h1 className='font-bold text-black text-2xl'>#{pokemon.id} {pokemon.name} </h1>
+          <h1 className="font-bold text-black text-2xl">
+            #{pokemon.id} {pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
+          </h1>
+
+          {/* Versions Section - Choose which one? 
+          <div className="mb-4 mt-4">
+            <h3 className="font-bold text-lg text-black">Versions:</h3>
+            <div className="flex flex-col space-y-2 mt-2">
+              {pokemon.versions &&
+                Object.entries(pokemon.versions).map(([version, description]) => (
+                  <div key={version} className="bg-neutral-600 p-4 rounded-lg">
+                    <h4 className="font-bold text-white">
+                      {version.charAt(0).toUpperCase() + version.slice(1)}
+                    </h4>
+                    <p className="text-neutral-400">{description}</p>
+                  </div>
+                ))}
+            </div>
+          </div> */}
 
           <div className="grid grid-cols-2 gap-4 mb-6 mt-4">
             <div className="bg-neutral-600 p-4 rounded-lg">
               <h3 className="text-white">Height: {pokemon.height} ft</h3>
-  
             </div>
             <div className="bg-neutral-600 p-4 rounded-lg">
               <h3 className="text-white">Weight: {pokemon.weight} lbs</h3>
             </div>
             <div className="bg-neutral-600 p-4 rounded-lg">
               <h3 className="text-white">Category: {pokemon.category}</h3>
-
             </div>
             <div className="bg-neutral-600 p-4 rounded-lg">
-              <h3 className="text-white">Abilities: {pokemon.abilities.join(', ')}</h3>
-
+              <h3 className="text-white">
+                Abilities: {pokemon.abilities.join(', ')}
+              </h3>
             </div>
           </div>
 
@@ -122,7 +153,9 @@ const PokemonDetail = () => {
               {pokemon.types.map((type) => (
                 <span
                   key={type}
-                  className={`text-white px-4 py-1 rounded-lg ${getTypeColor(type)}`}
+                  className={`text-white px-4 py-1 rounded-lg ${getTypeColor(
+                    type
+                  )}`}
                 >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </span>
@@ -138,7 +171,9 @@ const PokemonDetail = () => {
                 weaknesses.map((weakness) => (
                   <span
                     key={weakness}
-                    className={`text-white px-4 py-1 rounded-lg ${getTypeColor(weakness)}`}
+                    className={`text-white px-4 py-1 rounded-lg ${getTypeColor(
+                      weakness
+                    )}`}
                   >
                     {weakness}
                   </span>
@@ -151,7 +186,7 @@ const PokemonDetail = () => {
         </div>
       </div>
 
-      <div className="grid grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8" >
+      <div className="grid grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
         {/* Stats Section */}
         <div className="rounded-lg shadow-lg p-4 bg-neutral-100">
           <h3 className="font-bold text-2xl text-black mb-4">Stats:</h3>
@@ -173,14 +208,13 @@ const PokemonDetail = () => {
         </div>
 
         {/* Evolutions Section */}
-        <div className="rounded-lg shadow-lg p-4 bg-neutral-100" >
+        <div className="rounded-lg shadow-lg p-4 bg-neutral-100">
           <h3 className="font-bold text-2xl text-black mb-4">Evolutions:</h3>
           <div className="flex space-x-4 items-start">
             {evolutions.map((evo, index) => (
               <React.Fragment key={evo.id}>
                 <div className="flex items-center space-x-4">
-
-                  {/* Pokemon Image and Name */}
+                  {/* Pokémon Image and Name */}
                   <div className="text-center">
                     <div className="bg-neutral-600 p-4 rounded-full shadow-xl">
                       <img
@@ -190,14 +224,18 @@ const PokemonDetail = () => {
                         loading="lazy"
                       />
                     </div>
-                    <p className="text-black">#{evo.id} {evo.name} </p>
+                    <p className="text-black">
+                      #{evo.id} {evo.name}
+                    </p>
 
                     {/* Evolution Types */}
                     <div className="flex flex-col justify-start p-4 ">
                       {evo.types.map((type) => (
                         <span
                           key={type}
-                          className={`inline-flex items-center gap-x-1.5 py-1.5 px-3 mt-1 rounded-full text-xs font-medium text-white font-semibold ${getTypeColor(type)} justify-center text-center`}
+                          className={`inline-flex items-center gap-x-1.5 py-1.5 px-3 mt-1 rounded-full text-xs font-medium text-white font-semibold ${getTypeColor(
+                            type
+                          )} justify-center text-center`}
                         >
                           {type.charAt(0).toUpperCase() + type.slice(1)}
                         </span>
@@ -207,11 +245,7 @@ const PokemonDetail = () => {
 
                   {/* Evolution Arrow */}
                   {index < evolutions.length - 1 && (
-                    <img
-                      src={arrow}
-                      alt="evolution arrow"
-                      className="w-8 h-8"
-                    />
+                    <img src={arrow} alt="evolution arrow" className="w-8 h-8" />
                   )}
                 </div>
               </React.Fragment>
@@ -219,7 +253,6 @@ const PokemonDetail = () => {
           </div>
         </div>
       </div>
-
 
       <div className="mt-8 text-center">
         <button

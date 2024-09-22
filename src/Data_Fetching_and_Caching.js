@@ -1,11 +1,11 @@
-// src/Data_Fetching_and_Caching.jsx
+// Data_Fetching_and_Caching.js
 
 import axios from 'axios';
 import { openDB } from 'idb';
 
 const API_URL = 'https://pokeapi.co/api/v2';
 
-// Open or create an IndexedDB database
+// Initialize IndexedDB
 const dbPromise = openDB('pokedex-db', 3, {
   upgrade(db) {
     if (!db.objectStoreNames.contains('pokemon')) {
@@ -14,58 +14,58 @@ const dbPromise = openDB('pokedex-db', 3, {
     if (!db.objectStoreNames.contains('pokemonSpecies')) {
       db.createObjectStore('pokemonSpecies', { keyPath: 'id' });
     }
-    if (!db.objectStoreNames.contains('allPokemon')) {
-      db.createObjectStore('allPokemon');
+    if (!db.objectStoreNames.contains('typeData')) {
+      db.createObjectStore('typeData', { keyPath: 'name' });
+    }
+    if (!db.objectStoreNames.contains('evolutionChain')) {
+      db.createObjectStore('evolutionChain', { keyPath: 'id' });
     }
   },
 });
 
-/**
- * Fetch a list of Pokémon and cache in IndexedDB.
- * @param {number} limit - Number of Pokémon to fetch.
- * @param {number} offset - Offset for pagination.
- * @returns {Promise<Array>} - List of Pokémon data.
- */
-export const fetchPokemonList = async (limit = 12, offset = 0) => {
+// Fetch all 151 Pokémon and cache them
+export const fetchAllPokemonList = async () => {
   const db = await dbPromise;
-
-  // Try to get Pokémon from IndexedDB
   const cachedPokemon = await db.getAll('pokemon');
 
-  // Check if we have enough cached data
-  const requiredIds = Array.from({ length: limit }, (_, i) => i + offset + 1);
-  const cachedIds = cachedPokemon.map((p) => p.id);
-  const missingIds = requiredIds.filter((id) => !cachedIds.includes(id));
-
-  if (missingIds.length === 0) {
-    // All required Pokémon are cached
-    return cachedPokemon.filter((p) => requiredIds.includes(p.id));
+  if (cachedPokemon.length >= 151) {
+    // If all Pokémon are cached, return them
+    return cachedPokemon;
   } else {
-    // Fetch missing Pokémon data
-    const promises = missingIds.map(async (id) => {
-      const pokemonData = await getPokemonById(id);
-      return pokemonData;
-    });
+    try {
+      // Fetch Pokémon list
+      const response = await axios.get(`${API_URL}/pokemon?limit=151&offset=0`);
+      const pokemonList = response.data.results;
 
-    const fetchedPokemon = await Promise.all(promises);
+      // Fetch detailed data for each Pokémon
+      const detailedList = await Promise.all(
+        pokemonList.map(async (pokemon) => {
+          const urlSegments = pokemon.url.split('/').filter(Boolean);
+          const id = urlSegments[urlSegments.length - 1];
+          const details = await getPokemonById(id);
+          return details;
+        })
+      );
 
-    // Return combined cached and fetched data
-    const allPokemon = [...cachedPokemon, ...fetchedPokemon].filter((p) =>
-      requiredIds.includes(p.id)
-    );
+      // Store in cache
+      for (const pokemon of detailedList) {
+        if (pokemon) {
+          await db.put('pokemon', pokemon);
+        }
+      }
 
-    return allPokemon;
+      return detailedList;
+    } catch (error) {
+      console.error('Error fetching all Pokémon:', error);
+      return [];
+    }
   }
 };
 
-/**
- * Fetch Pokémon details by ID, using IndexedDB cache if available.
- * @param {number|string} id - Pokémon ID.
- * @returns {Promise<Object|null>} - Pokémon data.
- */
+// Get detailed Pokémon data by ID, with caching
 export const getPokemonById = async (id) => {
   const db = await dbPromise;
-  const pokemonId = parseInt(id);
+  const pokemonId = parseInt(id, 10);
 
   // Try to get Pokémon from IndexedDB
   let pokemon = await db.get('pokemon', pokemonId);
@@ -102,14 +102,10 @@ export const getPokemonById = async (id) => {
   }
 };
 
-/**
- * Fetch Pokémon species data by ID, using IndexedDB cache if available.
- * @param {number|string} id - Pokémon ID.
- * @returns {Promise<Object|null>} - Species data.
- */
+// Get Pokémon species data by ID, with caching
 export const getPokemonSpeciesById = async (id) => {
   const db = await dbPromise;
-  const speciesId = parseInt(id);
+  const speciesId = parseInt(id, 10);
 
   // Try to get species data from IndexedDB
   let speciesData = await db.get('pokemonSpecies', speciesId);
@@ -119,10 +115,10 @@ export const getPokemonSpeciesById = async (id) => {
     // Fetch from API
     try {
       const response = await axios.get(`${API_URL}/pokemon-species/${speciesId}`);
-      speciesData = response.data;
+      speciesData = { id: speciesId, ...response.data };
 
       // Store in IndexedDB
-      await db.put('pokemonSpecies', { id: speciesId, ...speciesData });
+      await db.put('pokemonSpecies', speciesData);
 
       return speciesData;
     } catch (error) {
@@ -132,11 +128,7 @@ export const getPokemonSpeciesById = async (id) => {
   }
 };
 
-/**
- * Fetch type data and cache in IndexedDB.
- * @param {string} typeName - Name of the Pokémon type.
- * @returns {Promise<Object|null>} - Type data.
- */
+// Fetch type data and cache in IndexedDB
 export const getTypeData = async (typeName) => {
   const db = await dbPromise;
 
@@ -148,10 +140,10 @@ export const getTypeData = async (typeName) => {
     // Fetch from API
     try {
       const response = await axios.get(`${API_URL}/type/${typeName}`);
-      typeData = response.data;
+      typeData = { name: typeName, ...response.data };
 
       // Store in IndexedDB
-      await db.put('typeData', { name: typeName, ...typeData });
+      await db.put('typeData', typeData);
 
       return typeData;
     } catch (error) {
@@ -161,11 +153,7 @@ export const getTypeData = async (typeName) => {
   }
 };
 
-/**
- * Fetch the evolution chain for a Pokémon species.
- * @param {string} url - Evolution chain URL.
- * @returns {Promise<Array>} - List of evolution stages.
- */
+// Fetch the evolution chain for a Pokémon species and cache it
 export const getEvolutionChain = async (url) => {
   const db = await dbPromise;
 
@@ -180,42 +168,15 @@ export const getEvolutionChain = async (url) => {
     // Fetch from API
     try {
       const response = await axios.get(url);
-      evolutionChain = response.data;
+      evolutionChain = { id: chainId, chain: response.data.chain };
 
       // Store in IndexedDB
-      await db.put('evolutionChain', { id: chainId, chain: evolutionChain.chain });
+      await db.put('evolutionChain', evolutionChain);
 
       return evolutionChain.chain;
     } catch (error) {
       console.error(`Error fetching evolution chain from ${url}:`, error);
       return null;
-    }
-  }
-};
-
-
-// Data_Fetching_and_Caching.js
-
-export const fetchAllPokemonNamesAndIds = async () => {
-  const db = await dbPromise;
-  let allPokemon = await db.get('allPokemon', 'namesAndIds');
-  if (allPokemon) {
-    return allPokemon;
-  } else {
-    try {
-      const response = await axios.get(`${API_URL}/pokemon?limit=151&offset=0`);
-      const pokemonList = response.data.results.map((pokemon) => {
-        const urlSegments = pokemon.url.split('/').filter(Boolean);
-        const id = parseInt(urlSegments[urlSegments.length - 1], 10);
-        return { id, name: pokemon.name };
-      });
-
-      // Store in IndexedDB
-      await db.put('allPokemon', pokemonList, 'namesAndIds');
-      return pokemonList;
-    } catch (error) {
-      console.error('Error fetching all Pokémon names and IDs:', error);
-      return [];
     }
   }
 };
