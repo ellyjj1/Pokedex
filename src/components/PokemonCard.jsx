@@ -1,34 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-
-const getTypeColor = (type) => {
-  switch (type.toLowerCase()) {
-    case 'grass':
-      return 'bg-green-500';
-    case 'poison':
-      return 'bg-purple-500';
-    case 'fire':
-      return 'bg-red-500';
-    case 'water':
-      return 'bg-blue-500';
-    case 'electric':
-      return 'bg-yellow-500';
-    case 'bug':
-      return 'bg-green-300';
-    case 'flying':
-      return 'bg-blue-300';
-    case 'ground':
-      return 'bg-yellow-300';
-    case 'fairy':
-      return 'bg-pink-300';
-    default:
-      return 'bg-stone-400';
-  }
-};
-
+import { getTypeColor } from '../utils/getTypeColor';
 
 const PokemonCard = ({ pokemon }) => {
   return (
+    // Click the whole card to get the detail of Pokémon
     <Link to={`/pokemon/${pokemon.id}`} className="details-link">
       <div className="flex flex-col border shadow-md rounded-xl p-4 text-center m-2 w-64 bg-gray-200 items-center justify-center">
         <p className="text-gray-400">#{pokemon.id.toString().padStart(4, '0')}</p>

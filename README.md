@@ -1,70 +1,73 @@
-# Getting Started with Create React App
+# Pokédex App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a **Pokédex web application** built with **React**, **Tailwind CSS**, **IndexedDB**, and the **PokeAPI**. It allows users to browse, search, and sort through a list of 151 Pokémon, view detailed stats, and see evolution chains. The app is designed with clean coding principles, strong error handling, and optimized performance using caching mechanisms.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Search & Sort**: Users can search for Pokémon by name or ID and sort them by various criteria, including height, weight, and type.
+- **Detailed Pokémon Info**: Displays detailed information on Pokémon, including stats, abilities, types, evolutions, and weaknesses.
+- **Local Data**: Uses **IndexedDB** to cache Pokémon data locally for reduce API access and improved performance.
+- **Responsive Design**: Optimized for different screen sizes using **Tailwind CSS**.
+- **Error Handling**: Gracefully handles API errors, connection issues, and missing data with fallback strategies.
 
-### `npm start`
+## Design Approach
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Clean Code**: Follows best practices, focusing on readability, maintainability, and modularity.
+- **DRY Principle**: Reuses components and utilities to avoid duplication and improve maintainability.
+- **Strong Typing**: Although JavaScript is used in this project, components are carefully typed through PropTypes for validation of props and state.
+- **Error Handling**: Every API call and state update is wrapped in try-catch blocks, with user-friendly error messages.
+- **Optimized Performance**: Caches API responses in IndexedDB to reduce API load and ensure a seamless user experience even when offline.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Deploy
+https://pokedex-ochre-nine.vercel.app/
 
-### `npm test`
+## Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+To run this project locally, follow these steps:
 
-### `npm run build`
+1. Clone the repository:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    ```bash
+   git clone https://github.com/your-username/pokedex-app.git
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Navigate to the project directory:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    ```bash
+    cd pokedex-app
 
-### `npm run eject`
+3. Install the dependencies:
+    ```bash
+    npm install
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. Start the development server:
+    ```bash
+    npm start
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Code Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The application is structured to maintain separation of concerns and adhere to React best practices.
 
-## Learn More
+# Code Structure
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```plaintext
+src/
+│
+├── assets/                     # Static assets used in the application
+│   ├── arrow.png               # Arrow image for evolutions chain
+│   ├── logo.svg                # Pokémon logo for branding
+│   └── Poke_ball_small.png     # Poké ball image for Footer
+│
+├── components/                 # All React components related to the UI
+│   ├── Banner.jsx              # Banner component
+│   ├── Footer.jsx              # Footer component
+│   ├── PokemonCard.jsx         # Component for rendering individual Pokémon cards in the list
+│   ├── PokemonDetail.jsx       # Detailed page for an individual Pokémon, showing stats, evolutions, etc.
+│   └── PokemonList.jsx         # Component for rendering the main Pokémon list, includes sorting, searching, and filtering
+│
+├── utils/                      # Utility/helper functions that can be reused
+│   └── getTypeColor.jsx        # Function to get color based on Pokémon types, used for styling type badges
+│
+├── Data_Fetching_and_Caching.js # Handles all the API requests and IndexedDB caching for Pokémon data
+│
+├── App.js                      # Main application component that brings all the components together

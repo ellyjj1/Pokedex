@@ -7,7 +7,7 @@ const PokemonList = () => {
   const [displayedPokemon, setDisplayedPokemon] = useState([]);
   const [sortCriteria, setSortCriteria] = useState('id');
   const [searchQuery, setSearchQuery] = useState('');
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(12); //Display 12 Pokémon initially, enhance performance
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch all Pokémon data on component mount
@@ -35,7 +35,7 @@ const PokemonList = () => {
       );
     }
 
-    // Apply sorting
+    // Sorting
     filteredList = [...filteredList].sort((a, b) => {
       if (sortCriteria === 'name') {
         return a.name.localeCompare(b.name);
@@ -78,7 +78,7 @@ const PokemonList = () => {
     setSearchQuery(e.target.value);
   };
 
-  // Load more Pokémon
+  // Load more 12 Pokémon when click the [Load More Pokémon] button. enhance performance
   const loadMore = () => {
     setVisibleCount((prevCount) => prevCount + 12);
   };
@@ -111,7 +111,7 @@ const PokemonList = () => {
         </select>
       </div>
 
-      {/* Pokémon Cards */}
+      {/* Display Pokémon Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ml-8 mr-8">
         {displayedPokemon.length > 0 ? (
           displayedPokemon.map((pokemon) => (

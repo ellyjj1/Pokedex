@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import arrow from '../assets/arrow.png'; // Import the arrow image
+import arrow from '../assets/arrow.png'; 
 import { getPokemonById, getPokemonSpeciesById } from '../Data_Fetching_and_Caching';
 import axios from 'axios';
 import { getTypeColor } from '../utils/getTypeColor';
@@ -12,6 +12,8 @@ const PokemonDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Get Pokémon data based on ID. 
+  // Not all data is from the same API link, so create multiple functions to get different data, avoiding more loops.
   useEffect(() => {
     const fetchPokemon = async () => {
       try {
@@ -228,7 +230,7 @@ const PokemonDetail = () => {
                       #{evo.id} {evo.name}
                     </p>
 
-                    {/* Evolution Types */}
+                    {/* Types in Evolution */}
                     <div className="flex flex-col justify-start p-4 ">
                       {evo.types.map((type) => (
                         <span
